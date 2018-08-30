@@ -5,7 +5,11 @@
 namespace Sulucz.StateMachine
 {
     public interface IStateMachineState<TState>
-        where TState : System.Enum
+#if OLD_VERSION
+            where TState : struct
+#else
+            where TState : System.Enum
+#endif
     {
         /// <summary>
         /// Gets the state.

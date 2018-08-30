@@ -16,8 +16,13 @@ namespace Sulucz.StateMachine
     /// <typeparam name="TTransition">The transition type.</typeparam>
     /// <typeparam name="TPayload">The payload type.</typeparam>
     public abstract class StateMachineContextBase<TState, TTransition, TPayload> : IStateMachineController<TTransition>, IDisposable
+#if OLD_VERSION
+        where TState : struct
+        where TTransition : struct
+#else
         where TState : System.Enum
         where TTransition : System.Enum
+#endif
     {
         /// <summary>
         /// The total elapsed time.

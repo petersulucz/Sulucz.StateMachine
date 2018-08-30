@@ -9,7 +9,11 @@ namespace Sulucz.StateMachine
     /// </summary>
     /// <typeparam name="TTransition">The transtion.</typeparam>
     public interface IStateMachineController<TTransition>
-        where TTransition : System.Enum
+#if OLD_VERSION
+            where TTransition : struct
+#else
+            where TTransition : System.Enum
+#endif
     {
         /// <summary>
         /// Post a transition request.

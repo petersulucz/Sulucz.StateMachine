@@ -7,8 +7,13 @@ namespace Sulucz.StateMachine
     using System.Collections.Generic;
 
     public interface IStateMachine<TState, TTransition, TPayload>
+#if OLD_VERSION
+        where TState : struct
+        where TTransition : struct
+#else
         where TState : System.Enum
         where TTransition : System.Enum
+#endif
     {
         /// <summary>
         /// Gets all of the states.

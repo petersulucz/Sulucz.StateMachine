@@ -14,8 +14,13 @@ namespace Sulucz.StateMachine.Builder.Internal
     /// <typeparam name="TTransition">The transition type.</typeparam>
     /// <typeparam name="TPayload">The payload type.</typeparam>
     internal class StateBuilder<TState, TTransition, TPayload> : IStateBuilder<TState, TTransition, TPayload>
+#if OLD_VERSION
+        where TState : struct
+        where TTransition : struct
+#else
         where TState : System.Enum
         where TTransition : System.Enum
+#endif
     {
         /// <summary>
         /// The valid next states.

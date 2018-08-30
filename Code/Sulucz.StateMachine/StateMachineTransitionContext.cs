@@ -15,8 +15,13 @@ namespace Sulucz.StateMachine
     /// <typeparam name="TPayload">The payload type.</typeparam>
     [SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:FileMayOnlyContainASingleType", Justification = "Reviewed.")]
     public sealed class StateMachineTransitionContext<TState, TTransition, TPayload> : StateMachineContextBase<TState, TTransition, TPayload>
+#if OLD_VERSION
+        where TState : struct
+        where TTransition : struct
+#else
         where TState : System.Enum
         where TTransition : System.Enum
+#endif
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="StateMachineTransitionContext{TState, TTransition, TPayload}"/> class.
@@ -56,8 +61,13 @@ namespace Sulucz.StateMachine
     internal static class StateMachineTransitionContext
     {
         public static StateMachineTransitionContext<TState, TTransition, TPayload> Create<TState, TTransition, TPayload>(StateMachineState<TState, TTransition, TPayload> startState, TState endState, TTransition transition, StateMachineBase<TState, TTransition, TPayload> stateMachine, TPayload payload)
+#if OLD_VERSION
+            where TState : struct
+            where TTransition : struct
+#else
             where TState : System.Enum
             where TTransition : System.Enum
+#endif
         {
             return new StateMachineTransitionContext<TState, TTransition, TPayload>(startState, endState, transition, stateMachine, payload);
         }

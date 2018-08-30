@@ -19,8 +19,13 @@ namespace Sulucz.StateMachine.Builder
         /// <typeparam name="TPayload">The payload type.</typeparam>
         /// <returns>The builder.</returns>
         public static IStateMachineBuilder<TState, TTransition, TPayload> CreateBuilder<TState, TTransition, TPayload>()
+#if OLD_VERSION
+        where TState : struct
+        where TTransition : struct
+#else
         where TState : System.Enum
         where TTransition : System.Enum
+#endif
         {
             return new StateMachineBuilder<TState, TTransition, TPayload>();
         }
