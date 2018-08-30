@@ -1,0 +1,11 @@
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <!-- Include stylecop in the build -->
+    <ItemGroup>
+        <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" />
+        <AdditionalFiles Include="$([System.IO.Path]::Combine($(StylecopDirectory), 'stylecop.json'))" />
+    </ItemGroup>
+    <PropertyGroup>
+        <CodeAnalysisRuleSet>$([System.IO.Path]::Combine($(StylecopDirectory), 'default.ruleset'))</CodeAnalysisRuleSet>
+    </PropertyGroup>
+</Project>

@@ -1,0 +1,10 @@
+language: csharp
+dotnet: 2.0.0
+mono: none
+script: ./build.sh && ./deploy.sh
+#deploy:
+#  skip_cleanup: true
+#  provider: script
+#  script: deploy.sh
+#  on:
+#    branch: master
