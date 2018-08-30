@@ -2,6 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Authors>Peter Sulucz</Authors>
+    <Description>This is a state machine.</Description>
+    <PackageLicenseUrl>https://github.com/petersulucz/Sulucz.StateMachine/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/petersulucz/Sulucz.StateMachine</PackageProjectUrl>
+    <Copyright>Peter Sulucz</Copyright>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

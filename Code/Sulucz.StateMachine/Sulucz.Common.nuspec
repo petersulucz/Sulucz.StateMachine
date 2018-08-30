@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <licenseUrl>https://raw.githubusercontent.com/petersulucz/Sulucz.StateMachine/master/LICENSE</licenseUrl>
+    <projectUrl>https://www.badflyer.com</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>A basic state machine.</description>
+    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
+    <copyright>Copyright 2018</copyright>
+    <tags>StateMachine</tags>
+    <dependencies>
+      <dependency id="Sulucz.Common" version="1.1.5" />
+    </dependencies>
+  </metadata>
+</package>
