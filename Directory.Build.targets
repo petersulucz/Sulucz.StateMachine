@@ -2,7 +2,9 @@
 
     <!-- Include stylecop in the build -->
     <ItemGroup>
-        <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" />
+        <PackageReference Include="StyleCop.Analyzers" Version="1.0.2">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
         <AdditionalFiles Include="$([System.IO.Path]::Combine($(StylecopDirectory), 'stylecop.json'))" />
     </ItemGroup>
     <PropertyGroup>
