@@ -23,7 +23,7 @@ namespace Sulucz.StateMachine.Tests
         [TestMethod]
         public async Task TestNewContext()
         {
-            var context = StateMachineContext.Create<BasicEnum, TestTransitionEnum, object>(null, new StateMachineState<BasicEnum, TestTransitionEnum, object>(BasicEnum.Start, null), null);
+            var context = StateMachineContext.Create<BasicEnum, TestTransitionEnum, object>(null, new StateMachineState<BasicEnum, TestTransitionEnum, object>(BasicEnum.Start, null, null), null);
             Assert.IsNotNull(context);
             Assert.AreEqual(BasicEnum.Start, context.CurrentState.State);
             await Task.Delay(100);
@@ -39,9 +39,9 @@ namespace Sulucz.StateMachine.Tests
         [TestMethod]
         public async Task TestNextState()
         {
-            var context = StateMachineContext.Create<BasicEnum, TestTransitionEnum, object>(null, new StateMachineState<BasicEnum, TestTransitionEnum, object>(BasicEnum.Start, null), null);
+            var context = StateMachineContext.Create<BasicEnum, TestTransitionEnum, object>(null, new StateMachineState<BasicEnum, TestTransitionEnum, object>(BasicEnum.Start, null, null), null);
             await Task.Delay(100);
-            context.SetState(new StateMachineState<BasicEnum, TestTransitionEnum, object>(BasicEnum.Stop, null));
+            context.SetState(new StateMachineState<BasicEnum, TestTransitionEnum, object>(BasicEnum.Stop, null, null));
             Assert.IsTrue(context.TotalElapsedTime > context.StateElapsedTime);
             Assert.AreEqual(BasicEnum.Stop, context.CurrentState.State);
         }
@@ -52,8 +52,8 @@ namespace Sulucz.StateMachine.Tests
         [TestMethod]
         public void TestNextState_Throws()
         {
-            var context = StateMachineContext.Create<BasicEnum, TestTransitionEnum, object>(null, new StateMachineState<BasicEnum, TestTransitionEnum, object>(BasicEnum.Start, null), null);
-            Assert.ThrowsException<ArgumentException>(() => context.SetState(new StateMachineState<BasicEnum, TestTransitionEnum, object>(BasicEnum.Start, null)));
+            var context = StateMachineContext.Create<BasicEnum, TestTransitionEnum, object>(null, new StateMachineState<BasicEnum, TestTransitionEnum, object>(BasicEnum.Start, null, null), null);
+            Assert.ThrowsException<ArgumentException>(() => context.SetState(new StateMachineState<BasicEnum, TestTransitionEnum, object>(BasicEnum.Start, null, null)));
         }
 
         /// <summary>

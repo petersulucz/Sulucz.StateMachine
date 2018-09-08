@@ -6,7 +6,7 @@ namespace Sulucz.StateMachine.Builder
 {
     using static Sulucz.StateMachine.StateMachineDelegates;
 
-    public interface IStateTransitionBuilder<TState, TTransition, TPayload>
+    public interface IStateTransitionBuilder<TState, TTransition, TPayload> : IStateBuilder<TState, TTransition, TPayload>
 #if OLD_VERSION
         where TState : struct
         where TTransition : struct

@@ -29,6 +29,8 @@ namespace Sulucz.StateMachine.Builder.Internal
         /// </summary>
         private readonly IDictionary<TState, StateBuilder<TState, TTransition, TPayload>> states = new Dictionary<TState, StateBuilder<TState, TTransition, TPayload>>();
 
+        private Action<StateMachineContextBase<TState, TTransition, TPayload>, Exception> faultHandler = null;
+
         /// <summary>
         /// Adds a new state to the state machine.
         /// </summary>
@@ -36,7 +38,7 @@ namespace Sulucz.StateMachine.Builder.Internal
         /// <returns>The state builder.</returns>
         public IStateBuilder<TState, TTransition, TPayload> AddState(TState state)
         {
-            var newState = new StateBuilder<TState, TTransition, TPayload>(state);
+            var newState = new StateBuilder<TState, TTransition, TPayload>(state, this);
 
             if (true == this.states.ContainsKey(state))
             {
@@ -49,16 +51,27 @@ namespace Sulucz.StateMachine.Builder.Internal
         }
 
         /// <summary>
+        /// Sets the fault handler.
+        /// </summary>
+        /// <param name="handler">The fault handler.</param>
+        /// <returns>The state machine builder.</returns>
+        public IStateMachineBuilder<TState, TTransition, TPayload> SetGlobalFaultHandler(Action<StateMachineContextBase<TState, TTransition, TPayload>, Exception> handler)
+        {
+            this.faultHandler = handler;
+            return this;
+        }
+
+        /// <summary>
         /// Builds the state machine.
         /// </summary>
         /// <returns>The state machine.</returns>
         public IStateMachine<TState, TTransition, TPayload> Compile()
         {
-            var stateMachine = new StateMachineBase<TState, TTransition, TPayload>();
+            var stateMachine = new StateMachineBase<TState, TTransition, TPayload>(this.faultHandler);
 
             foreach (var state in this.states.Values)
             {
-                stateMachine.AddState(new StateMachineState<TState, TTransition, TPayload>(state.State, state.OnEnter));
+                stateMachine.AddState(new StateMachineState<TState, TTransition, TPayload>(state.State, state.OnEnter, state.OnEnterFaultHandler));
             }
 
             foreach (var transition in this.states.Values.SelectMany(state => state.Transitions))

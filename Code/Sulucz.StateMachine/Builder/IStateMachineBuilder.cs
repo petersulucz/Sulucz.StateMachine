@@ -4,6 +4,8 @@
 
 namespace Sulucz.StateMachine.Builder
 {
+    using System;
+
     /// <summary>
     /// The state machine builder.
     /// </summary>
@@ -25,6 +27,13 @@ namespace Sulucz.StateMachine.Builder
         /// <param name="state">The state.</param>
         /// <returns>The state builder.</returns>
         IStateBuilder<TState, TTransition, TPayload> AddState(TState state);
+
+        /// <summary>
+        /// Sets the fault handler.
+        /// </summary>
+        /// <param name="handler">The fault handler.</param>
+        /// <returns>The state machine builder.</returns>
+        IStateMachineBuilder<TState, TTransition, TPayload> SetGlobalFaultHandler(Action<StateMachineContextBase<TState, TTransition, TPayload>, Exception> handler);
 
         /// <summary>
         /// Builds the state machine.

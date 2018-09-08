@@ -30,14 +30,20 @@ namespace Sulucz.StateMachine.Internal
         private readonly IDictionary<TState, StateMachineState<TState, TTransition, TPayload>> states;
 
         /// <summary>
+        /// The fault handler.
+        /// </summary>
+        private readonly Action<StateMachineContextBase<TState, TTransition, TPayload>, Exception> faultHandler;
+
+        /// <summary>
         /// The context set.
         /// </summary>
         private readonly HashSet<StateMachineContextBase<TState, TTransition, TPayload>> contexts;
 
-        public StateMachineBase()
+        public StateMachineBase(Action<StateMachineContextBase<TState, TTransition, TPayload>, Exception> faultHandler)
         {
             this.states = new Dictionary<TState, StateMachineState<TState, TTransition, TPayload>>();
             this.contexts = new HashSet<StateMachineContextBase<TState, TTransition, TPayload>>();
+            this.faultHandler = faultHandler;
         }
 
         /// <summary>
@@ -74,19 +80,41 @@ namespace Sulucz.StateMachine.Internal
         }
 
         /// <summary>
-        /// Start the state machine.
+        /// Starts a state machine.
         /// </summary>
         /// <param name="startState">The start state.</param>
         /// <param name="payload">The payload.</param>
+        /// <param name="executeStageEntry">True executes the OnEnter function of the first state, if it exists.</param>
         /// <returns>The state machine context.</returns>
-        public StateMachineContext<TState, TTransition, TPayload> StartStateMachine(TState startState, TPayload payload)
+        public StateMachineContext<TState, TTransition, TPayload> StartStateMachine(TState startState, TPayload payload, bool executeStageEntry)
         {
             var currentState = this.states[startState];
             var context = StateMachineContext.Create(this, currentState, payload);
 
-            this.contexts.Add(context);
+            lock (this.contexts)
+            {
+                this.contexts.Add(context);
+            }
+
+            // If true, fire off the first stage.
+            if (true == executeStageEntry)
+            {
+                currentState.InvokeEnter(context);
+            }
 
             return context;
+        }
+
+        /// <summary>
+        /// Remove the context.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        internal void RemoveContext(StateMachineContextBase<TState, TTransition, TPayload> context)
+        {
+            lock (this.contexts)
+            {
+                this.contexts.Remove(context);
+            }
         }
 
         /// <summary>

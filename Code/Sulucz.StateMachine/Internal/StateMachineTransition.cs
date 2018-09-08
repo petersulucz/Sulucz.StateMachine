@@ -4,6 +4,7 @@
 
 namespace Sulucz.StateMachine.Internal
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -73,15 +74,31 @@ namespace Sulucz.StateMachine.Internal
             if (true == this.onTransitionDelegate.Any())
             {
                 var context = StateMachineTransitionContext.Create(this.startState, this.endState.State, this.Message, this.stateMachine, stateMachineContext.Payload);
-                await Task.WhenAll(this.onTransitionDelegate.Select(d => d(context)));
+                await Task.WhenAll(this.onTransitionDelegate.Select(d => this.HandlerExecutor(d, context)));
             }
 
             // We can continue on the same thread for the executing the next state.
             stateMachineContext.SetState(this.endState);
 
-            if (null != this.endState.OnEnter)
+            // Fire of the state entrance.
+            this.endState.InvokeEnter(stateMachineContext);
+        }
+
+        /// <summary>
+        /// The method handler exector.
+        /// </summary>
+        /// <param name="action">The action to execute.</param>
+        /// <param name="context">The transition context.</param>
+        /// <returns>An async task.</returns>
+        private async Task HandlerExecutor(StateMachineTransitionDel<TState, TTransition, TPayload> action, StateMachineTransitionContext<TState, TTransition, TPayload> context)
+        {
+            try
             {
-                await this.endState.OnEnter(stateMachineContext);
+                await action(context);
+            }
+            catch (Exception ex)
+            {
+                // Do nothing for now.
             }
         }
     }

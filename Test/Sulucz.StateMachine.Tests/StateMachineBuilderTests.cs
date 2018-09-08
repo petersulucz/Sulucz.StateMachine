@@ -26,7 +26,7 @@ namespace Sulucz.StateMachine.Tests
             var newState = builder.AddState(TestEnum.Start);
 
             Assert.IsNotNull(newState);
-            Assert.AreEqual(TestEnum.Start, newState.State);
+            Assert.AreEqual(TestEnum.Start, ((StateBuilder<TestEnum, TestTransitionEnum, object>)newState).State);
         }
 
         /// <summary>

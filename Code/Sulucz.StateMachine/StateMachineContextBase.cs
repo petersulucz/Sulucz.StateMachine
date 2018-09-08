@@ -54,6 +54,16 @@ namespace Sulucz.StateMachine
         /// </summary>
         private bool inTransition = false;
 
+        /// <summary>
+        /// True if the current context is being processed.
+        /// </summary>
+        private bool inState = false;
+
+        /// <summary>
+        /// The next transition we have to execute.
+        /// </summary>
+        private TTransition? nextTransition = null;
+
         internal StateMachineContextBase(StateMachineBase<TState, TTransition, TPayload> stateMachine, StateMachineState<TState, TTransition, TPayload> currentState, TPayload payload)
         {
             this.stateMachine = stateMachine;
@@ -111,10 +121,19 @@ namespace Sulucz.StateMachine
                     throw new Exception("Cannot switch state while in transition");
                 }
 
-                this.inTransition = true;
+                if (true == this.nextTransition.HasValue)
+                {
+                    throw new ArgumentException($"A transition of type {this.nextTransition} is already pendng.");
+                }
+                else if (this.inState == true)
+                {
+                    this.nextTransition = transition;
+                }
+                else
+                {
+                    this.CurrentState.InvokeTransition(transition, this);
+                }
             }
-
-            this.CurrentState.InvokeTransition(transition, this);
         }
 
         /// <summary>
@@ -132,7 +151,68 @@ namespace Sulucz.StateMachine
 
                 this.CurrentState = state;
                 this.stateElapsedTime.Restart();
-                this.inTransition = false;
+            }
+        }
+
+        /// <summary>
+        /// Begin a transition.
+        /// </summary>
+        internal void BeginTransition()
+        {
+            lock (this.transitionLock)
+            {
+                if (true == this.inTransition)
+                {
+                    throw new Exception("Cannot switch state while in transition");
+                }
+
+                this.inTransition = true;
+            }
+        }
+
+        /// <summary>
+        /// Begin a state operation.
+        /// </summary>
+        internal void BeginStateOperation()
+        {
+            lock (this.transitionLock)
+            {
+                if (true == this.inState)
+                {
+                    throw new Exception("Cannot switch state while in a state execution");
+                }
+
+                if (true == this.inTransition)
+                {
+                    this.inTransition = false;
+                }
+
+                this.inState = true;
+            }
+        }
+
+        /// <summary>
+        /// End a state operation.
+        /// </summary>
+        internal void EndStateOperation()
+        {
+            lock (this.transitionLock)
+            {
+                if (false == this.inState)
+                {
+                    throw new Exception("Cannot end a state operation if we arent in one.");
+                }
+
+                this.inState = false;
+
+                if (this.nextTransition != null)
+                {
+                    var next = this.nextTransition.Value;
+                    this.nextTransition = null;
+
+                    // Fire off the pending transition.
+                    this.Post(next);
+                }
             }
         }
     }
