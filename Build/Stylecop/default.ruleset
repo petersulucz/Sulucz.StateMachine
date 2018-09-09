@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="Rules for StyleCop.Analyzers" Description="Code analysis rules for StyleCop.Analyzers.csproj." ToolsVersion="15.0">
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
+    <Rule Id="SA1124" Action="None" /> <!-- Do not user regions... -->
     <Rule Id="SA1131" Action="None" />
     <Rule Id="SA1305" Action="Warning" />
     <Rule Id="SA1412" Action="Warning" />

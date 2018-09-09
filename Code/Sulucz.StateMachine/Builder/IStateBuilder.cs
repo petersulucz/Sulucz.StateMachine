@@ -4,13 +4,15 @@
 
 namespace Sulucz.StateMachine.Builder
 {
+    using System;
+
     /// <summary>
     /// A state builder.
     /// </summary>
     /// <typeparam name="TState">The type of the state.</typeparam>
     /// <typeparam name="TTransition">The type of the transition.</typeparam>
     /// <typeparam name="TPayload">The payload type.</typeparam>
-    public interface IStateBuilder<TState, TTransition, TPayload>
+    public interface IStateBuilder<TState, TTransition, TPayload> : IStateMachineBuilder<TState, TTransition, TPayload>
 #if OLD_VERSION
         where TState : struct
         where TTransition : struct
@@ -19,11 +21,6 @@ namespace Sulucz.StateMachine.Builder
         where TTransition : System.Enum
 #endif
     {
-        /// <summary>
-        /// Gets the state at this stage.
-        /// </summary>
-        TState State { get; }
-
         /// <summary>
         /// Adds a valid next state to this state.
         /// </summary>
@@ -38,5 +35,12 @@ namespace Sulucz.StateMachine.Builder
         /// <param name="onEnter">When the state is entered.</param>
         /// <returns>The state builder.</returns>
         IStateBuilder<TState, TTransition, TPayload> OnStateEnter(StateMachineDelegates.StateMachineEnterDel<TState, TTransition, TPayload> onEnter);
+
+        /// <summary>
+        /// Sets the fault handler for On-Enter.
+        /// </summary>
+        /// <param name="handler">The fault handler.</param>
+        /// <returns>The state builder.</returns>
+        IStateBuilder<TState, TTransition, TPayload> SetOnEnterFaultHandler(Action<StateMachineContextBase<TState, TTransition, TPayload>, Exception> handler);
     }
 }

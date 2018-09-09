@@ -4,7 +4,6 @@
 
 namespace Sulucz.StateMachine
 {
-    using System;
     using System.Diagnostics.CodeAnalysis;
     using Sulucz.StateMachine.Internal;
 

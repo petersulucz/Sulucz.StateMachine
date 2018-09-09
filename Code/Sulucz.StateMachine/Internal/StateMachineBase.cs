@@ -7,6 +7,7 @@ namespace Sulucz.StateMachine.Internal
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.ExceptionServices;
     using Sulucz.Common;
 
     /// <summary>
@@ -30,14 +31,20 @@ namespace Sulucz.StateMachine.Internal
         private readonly IDictionary<TState, StateMachineState<TState, TTransition, TPayload>> states;
 
         /// <summary>
+        /// The fault handler.
+        /// </summary>
+        private readonly Action<StateMachineContextBase<TState, TTransition, TPayload>, Exception> faultHandler;
+
+        /// <summary>
         /// The context set.
         /// </summary>
         private readonly HashSet<StateMachineContextBase<TState, TTransition, TPayload>> contexts;
 
-        public StateMachineBase()
+        public StateMachineBase(Action<StateMachineContextBase<TState, TTransition, TPayload>, Exception> faultHandler)
         {
             this.states = new Dictionary<TState, StateMachineState<TState, TTransition, TPayload>>();
             this.contexts = new HashSet<StateMachineContextBase<TState, TTransition, TPayload>>();
+            this.faultHandler = faultHandler;
         }
 
         /// <summary>
@@ -74,19 +81,41 @@ namespace Sulucz.StateMachine.Internal
         }
 
         /// <summary>
-        /// Start the state machine.
+        /// Starts a state machine.
         /// </summary>
         /// <param name="startState">The start state.</param>
         /// <param name="payload">The payload.</param>
+        /// <param name="executeStageEntry">True executes the OnEnter function of the first state, if it exists.</param>
         /// <returns>The state machine context.</returns>
-        public StateMachineContext<TState, TTransition, TPayload> StartStateMachine(TState startState, TPayload payload)
+        public StateMachineContext<TState, TTransition, TPayload> StartStateMachine(TState startState, TPayload payload, bool executeStageEntry)
         {
             var currentState = this.states[startState];
             var context = StateMachineContext.Create(this, currentState, payload);
 
-            this.contexts.Add(context);
+            lock (this.contexts)
+            {
+                this.contexts.Add(context);
+            }
+
+            // If true, fire off the first stage.
+            if (true == executeStageEntry)
+            {
+                currentState.InvokeEnter(context);
+            }
 
             return context;
+        }
+
+        /// <summary>
+        /// Remove the context.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        internal void RemoveContext(StateMachineContextBase<TState, TTransition, TPayload> context)
+        {
+            lock (this.contexts)
+            {
+                this.contexts.Remove(context);
+            }
         }
 
         /// <summary>
@@ -118,6 +147,48 @@ namespace Sulucz.StateMachine.Internal
             }
 
             startState.AddTransition(new StateMachineTransition<TState, TTransition, TPayload>(transition, this, startState, endState, intercepts));
+        }
+
+        /// <summary>
+        /// Handle a fault in the state machine.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="ex">The exception.</param>
+        internal void HandleFault(StateMachineContextBase<TState, TTransition, TPayload> context, Exception ex)
+        {
+            if (StateMachineLifetime.Error == context.CurrentLifecycle)
+            {
+                return;
+            }
+
+            Exception faultReson = ex;
+            if (this.faultHandler != null)
+            {
+                try
+                {
+                    // If this just succeeds. then continue.
+                    this.faultHandler(context, ex);
+
+                    return;
+                }
+                catch (Exception newEx)
+                {
+                    faultReson = newEx;
+                }
+            }
+
+            this.FaultStateMachineContext(context, faultReson);
+        }
+
+        /// <summary>
+        /// Fault the state machine context.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="ex">The exception.</param>
+        internal void FaultStateMachineContext(StateMachineContextBase<TState, TTransition, TPayload> context, Exception ex)
+        {
+            this.RemoveContext(context);
+            context.Fault();
         }
     }
 }

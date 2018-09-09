@@ -151,5 +151,65 @@ namespace Sulucz.StateMachine.Tests
                 Assert.Fail();
             }
         }
+
+        /// <summary>
+        /// Prevent double pending transistions.
+        /// </summary>
+        [TestMethod]
+        public void BlockDoublePendingTransition()
+        {
+            var gate = new ManualResetEventSlim(false);
+
+            var stateMachineBuilder = StateMachineFactory.CreateBuilder<TestEnum, TestTransitionEnum, int>();
+            var startState = stateMachineBuilder.AddState(TestEnum.Start);
+            var endState = stateMachineBuilder.AddState(TestEnum.End);
+
+            startState.AddValidTransition(TestTransitionEnum.Stopping, endState);
+            startState.OnStateEnter(ctx =>
+            {
+                Assert.IsTrue(gate.Wait(StateMachineTests.gateTimeout));
+                return Task.CompletedTask;
+            });
+
+            var stateMachine = stateMachineBuilder.Compile();
+            var context = stateMachine.StartStateMachine(TestEnum.Start, 5, executeStageEntry: true);
+
+            context.Post(TestTransitionEnum.Stopping);
+            Assert.ThrowsException<ArgumentException>(() => context.Post(TestTransitionEnum.Stopping));
+
+            gate.Set();
+        }
+
+        /// <summary>
+        /// An error in transition doesnt break the workflow.
+        /// </summary>
+        [TestMethod]
+        public void TransitionErrorDoesntBreakWorkflow()
+        {
+            var gate = new ManualResetEventSlim(false);
+
+            var stateMachineBuilder = StateMachineFactory.CreateBuilder<TestEnum, TestTransitionEnum, int>();
+            var startState = stateMachineBuilder.AddState(TestEnum.Start);
+            var endState = stateMachineBuilder.AddState(TestEnum.End);
+
+            startState.AddValidTransition(TestTransitionEnum.Stopping, endState)
+                .AddTransitionFunction(ctx =>
+                {
+                    throw new Exception();
+                });
+
+            endState.OnStateEnter(ctx =>
+            {
+                gate.Set();
+                return Task.CompletedTask;
+            });
+
+            var stateMachine = stateMachineBuilder.Compile();
+            var context = stateMachine.StartStateMachine(TestEnum.Start, 5, executeStageEntry: true);
+
+            context.Post(TestTransitionEnum.Stopping);
+
+            Assert.IsTrue(gate.Wait(StateMachineTests.gateTimeout));
+        }
     }
 }

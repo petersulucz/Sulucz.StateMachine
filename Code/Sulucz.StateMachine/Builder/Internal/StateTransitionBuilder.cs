@@ -4,6 +4,7 @@
 
 namespace Sulucz.StateMachine.Builder.Internal
 {
+    using System;
     using System.Collections.Generic;
     using Sulucz.Common;
     using static Sulucz.StateMachine.StateMachineDelegates;
@@ -29,14 +30,21 @@ namespace Sulucz.StateMachine.Builder.Internal
         private readonly IList<StateMachineTransitionDel<TState, TTransition, TPayload>> onTransitionFunctions = new List<StateMachineTransitionDel<TState, TTransition, TPayload>>();
 
         /// <summary>
+        /// The state machine.
+        /// </summary>
+        private readonly StateMachineBuilder<TState, TTransition, TPayload> stateMachine;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="StateTransitionBuilder{TState, TTransition, TPayload}"/> class.
         /// </summary>
         /// <param name="transitionMessage">The transition message.</param>
+        /// <param name="stateMachine">The state machine.</param>
         /// <param name="startState">The start state.</param>
         /// <param name="endState">The end state.</param>
-        public StateTransitionBuilder(TTransition transitionMessage, StateBuilder<TState, TTransition, TPayload> startState, StateBuilder<TState, TTransition, TPayload> endState)
+        public StateTransitionBuilder(TTransition transitionMessage, StateMachineBuilder<TState, TTransition,  TPayload> stateMachine, StateBuilder<TState, TTransition, TPayload> startState, StateBuilder<TState, TTransition, TPayload> endState)
         {
             this.Message = transitionMessage;
+            this.stateMachine = stateMachine;
             this.StartState = startState;
             this.EndState = endState;
         }
@@ -66,10 +74,78 @@ namespace Sulucz.StateMachine.Builder.Internal
         /// </summary>
         /// <param name="func">The function to execute.</param>
         /// <returns>this.</returns>
-        IStateTransitionBuilder<TState, TTransition, TPayload> IStateTransitionBuilder<TState, TTransition, TPayload>.AddTransitionFunction(StateMachineTransitionDel<TState, TTransition, TPayload> func)
+        public IStateTransitionBuilder<TState, TTransition, TPayload> AddTransitionFunction(StateMachineTransitionDel<TState, TTransition, TPayload> func)
         {
             this.onTransitionFunctions.Add(func);
             return this;
         }
+
+        #region IStateBuilder
+
+        /// <summary>
+        /// Adds a valid next state to this state.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="nextState">The valid next state.</param>
+        /// <returns>This.</returns>
+        public IStateTransitionBuilder<TState, TTransition, TPayload> AddValidTransition(TTransition message, IStateBuilder<TState, TTransition, TPayload> nextState)
+        {
+            return this.StartState.AddValidTransition(message, nextState);
+        }
+
+        /// <summary>
+        /// Called when the state is entered.
+        /// </summary>
+        /// <param name="onEnter">When the state is entered.</param>
+        /// <returns>The state builder.</returns>
+        public IStateBuilder<TState, TTransition, TPayload> OnStateEnter(StateMachineEnterDel<TState, TTransition, TPayload> onEnter)
+        {
+            return this.StartState.OnStateEnter(onEnter);
+        }
+
+        /// <summary>
+        /// Sets the fault handler for On-Enter.
+        /// </summary>
+        /// <param name="handler">The fault handler.</param>
+        /// <returns>The state builder.</returns>
+        public IStateBuilder<TState, TTransition, TPayload> SetOnEnterFaultHandler(Action<StateMachineContextBase<TState, TTransition, TPayload>, Exception> handler)
+        {
+            return this.StartState.SetOnEnterFaultHandler(handler);
+        }
+
+        #endregion
+
+        #region IStateMachineBuilder
+
+        /// <summary>
+        /// Builds the state machine.
+        /// </summary>
+        /// <returns>The state machine.</returns>
+        public IStateMachine<TState, TTransition, TPayload> Compile()
+        {
+            return this.stateMachine.Compile();
+        }
+
+        /// <summary>
+        /// Adds a new state to the state machine.
+        /// </summary>
+        /// <param name="state">The state.</param>
+        /// <returns>The state builder.</returns>
+        public IStateBuilder<TState, TTransition, TPayload> AddState(TState state)
+        {
+            return this.stateMachine.AddState(state);
+        }
+
+        /// <summary>
+        /// Sets the fault handler.
+        /// </summary>
+        /// <param name="handler">The fault handler.</param>
+        /// <returns>The state machine builder.</returns>
+        public IStateMachineBuilder<TState, TTransition, TPayload> SetGlobalFaultHandler(Action<StateMachineContextBase<TState, TTransition, TPayload>, Exception> handler)
+        {
+            return this.stateMachine.SetGlobalFaultHandler(handler);
+        }
+
+        #endregion
     }
 }

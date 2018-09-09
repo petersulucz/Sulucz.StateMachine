@@ -30,7 +30,8 @@ namespace Sulucz.StateMachine
         /// </summary>
         /// <param name="startState">The start state.</param>
         /// <param name="payload">The payload.</param>
+        /// <param name="executeStageEntry">True executes the OnEnter function of the first state, if it exists.</param>
         /// <returns>The state machine context.</returns>
-        StateMachineContext<TState, TTransition, TPayload> StartStateMachine(TState startState, TPayload payload);
+        StateMachineContext<TState, TTransition, TPayload> StartStateMachine(TState startState, TPayload payload, bool executeStageEntry = false);
     }
 }
