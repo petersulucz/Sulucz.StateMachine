@@ -77,6 +77,11 @@ namespace Sulucz.StateMachine.Internal
                 await Task.WhenAll(this.onTransitionDelegate.Select(d => this.HandlerExecutor(d, context)));
             }
 
+            if (StateMachineLifetime.Error == stateMachineContext.CurrentLifecycle)
+            {
+                return;
+            }
+
             // We can continue on the same thread for the executing the next state.
             stateMachineContext.SetState(this.endState);
 
@@ -94,11 +99,21 @@ namespace Sulucz.StateMachine.Internal
         {
             try
             {
+                if (StateMachineLifetime.Error == context.CurrentLifecycle)
+                {
+                    return;
+                }
+
                 await action(context);
             }
             catch (Exception ex)
             {
-                // Do nothing for now.
+                if (StateMachineLifetime.Error == context.CurrentLifecycle)
+                {
+                    return;
+                }
+
+                this.stateMachine.HandleFault(context, ex);
             }
         }
     }

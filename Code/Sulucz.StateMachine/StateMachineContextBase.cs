@@ -71,6 +71,7 @@ namespace Sulucz.StateMachine
             this.CurrentState = currentState;
             this.stateElapsedTime = Stopwatch.StartNew();
             this.totalElapsedTime = Stopwatch.StartNew();
+            this.CurrentLifecycle = StateMachineLifetime.Running;
             this.tokenSource = new CancellationTokenSource();
         }
 
@@ -83,6 +84,11 @@ namespace Sulucz.StateMachine
         /// Gets the amount of time spent in this current state.
         /// </summary>
         public TimeSpan StateElapsedTime => this.stateElapsedTime.Elapsed;
+
+        /// <summary>
+        /// Gets the current lifecycle state of the context.
+        /// </summary>
+        public StateMachineLifetime CurrentLifecycle { get; private set; }
 
         /// <summary>
         /// Gets the current state.
@@ -116,6 +122,11 @@ namespace Sulucz.StateMachine
         {
             lock (this.transitionLock)
             {
+                if (StateMachineLifetime.Error == this.CurrentLifecycle)
+                {
+                    throw new ArgumentException("The state machine is in error state.");
+                }
+
                 if (true == this.inTransition)
                 {
                     throw new Exception("Cannot switch state while in transition");
@@ -214,6 +225,15 @@ namespace Sulucz.StateMachine
                     this.Post(next);
                 }
             }
+        }
+
+        /// <summary>
+        /// Faults the context.
+        /// </summary>
+        internal void Fault()
+        {
+            this.tokenSource.Cancel();
+            this.CurrentLifecycle = StateMachineLifetime.Error;
         }
     }
 }

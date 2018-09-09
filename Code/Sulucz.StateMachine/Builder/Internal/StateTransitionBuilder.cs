@@ -44,6 +44,7 @@ namespace Sulucz.StateMachine.Builder.Internal
         public StateTransitionBuilder(TTransition transitionMessage, StateMachineBuilder<TState, TTransition,  TPayload> stateMachine, StateBuilder<TState, TTransition, TPayload> startState, StateBuilder<TState, TTransition, TPayload> endState)
         {
             this.Message = transitionMessage;
+            this.stateMachine = stateMachine;
             this.StartState = startState;
             this.EndState = endState;
         }

@@ -34,14 +34,25 @@ namespace Sulucz.StateMachine.Internal
         private readonly Action<StateMachineContextBase<TState, TTransition, TPayload>, Exception> faultHandler;
 
         /// <summary>
+        /// The state machine.
+        /// </summary>
+        private readonly StateMachineBase<TState, TTransition, TPayload> stateMachine;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="StateMachineState{TState, TTransition, TPayload}"/> class.
         /// </summary>
         /// <param name="state">The state.</param>
+        /// <param name="stateMachine">The state machine.</param>
         /// <param name="onEnter">The on enter method.</param>
         /// <param name="faultHandler">The fault handler.</param>
-        public StateMachineState(TState state, StateMachineDelegates.StateMachineEnterDel<TState, TTransition, TPayload> onEnter, Action<StateMachineContextBase<TState, TTransition, TPayload>, Exception> faultHandler)
+        public StateMachineState(
+            TState state,
+            StateMachineBase<TState, TTransition, TPayload> stateMachine,
+            StateMachineDelegates.StateMachineEnterDel<TState, TTransition, TPayload> onEnter,
+            Action<StateMachineContextBase<TState, TTransition, TPayload>, Exception> faultHandler)
         {
             this.State = state;
+            this.stateMachine = stateMachine;
             this.transitions = new Dictionary<TTransition, StateMachineTransition<TState, TTransition, TPayload>>();
             this.OnEnter = onEnter;
             this.faultHandler = faultHandler;
@@ -122,10 +133,19 @@ namespace Sulucz.StateMachine.Internal
             {
                 if (null != this.faultHandler)
                 {
-                    this.faultHandler(context, ex);
+                    try
+                    {
+                        this.faultHandler(context, ex);
+                    }
+                    catch (Exception newEx)
+                    {
+                        this.stateMachine.FaultStateMachineContext(context, newEx);
+                    }
                 }
-
-                //TODO: send to the state machine.
+                else
+                {
+                    this.stateMachine.HandleFault(context, ex);
+                }
             }
             finally
             {

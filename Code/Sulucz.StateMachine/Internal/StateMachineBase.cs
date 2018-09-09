@@ -7,6 +7,7 @@ namespace Sulucz.StateMachine.Internal
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.ExceptionServices;
     using Sulucz.Common;
 
     /// <summary>
@@ -146,6 +147,48 @@ namespace Sulucz.StateMachine.Internal
             }
 
             startState.AddTransition(new StateMachineTransition<TState, TTransition, TPayload>(transition, this, startState, endState, intercepts));
+        }
+
+        /// <summary>
+        /// Handle a fault in the state machine.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="ex">The exception.</param>
+        internal void HandleFault(StateMachineContextBase<TState, TTransition, TPayload> context, Exception ex)
+        {
+            if (StateMachineLifetime.Error == context.CurrentLifecycle)
+            {
+                return;
+            }
+
+            Exception faultReson = ex;
+            if (this.faultHandler != null)
+            {
+                try
+                {
+                    // If this just succeeds. then continue.
+                    this.faultHandler(context, ex);
+
+                    return;
+                }
+                catch (Exception newEx)
+                {
+                    faultReson = newEx;
+                }
+            }
+
+            this.FaultStateMachineContext(context, faultReson);
+        }
+
+        /// <summary>
+        /// Fault the state machine context.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        /// <param name="ex">The exception.</param>
+        internal void FaultStateMachineContext(StateMachineContextBase<TState, TTransition, TPayload> context, Exception ex)
+        {
+            this.RemoveContext(context);
+            context.Fault();
         }
     }
 }

@@ -71,7 +71,7 @@ namespace Sulucz.StateMachine.Builder.Internal
 
             foreach (var state in this.states.Values)
             {
-                stateMachine.AddState(new StateMachineState<TState, TTransition, TPayload>(state.State, state.OnEnter, state.OnEnterFaultHandler));
+                stateMachine.AddState(new StateMachineState<TState, TTransition, TPayload>(state.State, stateMachine, state.OnEnter, state.OnEnterFaultHandler));
             }
 
             foreach (var transition in this.states.Values.SelectMany(state => state.Transitions))
